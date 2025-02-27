@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { validationResult } from 'express-validator';
 
 import { HttpError } from "../models/http-error.ts";
 import { Place } from '../types';
+import { getValidationMessages } from './utilities.ts';
 
 const DUMMY_PLACES: Array<Place> = [
     {
@@ -61,6 +63,16 @@ export const getPlacesByUserId = (req: Request, res: Response, next: NextFunctio
 }
 
 export const createPlace = (req: Request, res: Response, _next: NextFunction) => {
+    console.log(`>>> POST request for create place`);
+
+    const result = validationResult(req);
+
+    if (!result.isEmpty()) {
+        const error = getValidationMessages(req).array()[0];
+        console.log('>>> Invalid inputs\n', error);
+        throw new HttpError(error, 422);
+    }
+    
     const { title, description, coordinates, address, creator } = req.body;
 
     const createdPlace: Place = {
@@ -73,20 +85,25 @@ export const createPlace = (req: Request, res: Response, _next: NextFunction) =>
         creator: creator
     }
 
-    console.log(`POST request for create place`);
-
     DUMMY_PLACES.push(createdPlace);
 
     res.status(201).json({ place: createdPlace });
 }
 
 export const updatePlaceById = (req: Request, res: Response, _next: NextFunction) => {
-    const { title, description } = req.body;
-
     const placeId = req.params.pid;
-
+    
     console.log(`PATCH request for place: ${placeId}`);
 
+        const result = validationResult(req);
+
+        if (!result.isEmpty()) {
+            const error = getValidationMessages(req).array()[0];
+            console.log('>>> Invalid inputs\n', error);
+            throw new HttpError(error, 422);
+        }
+    
+    const { title, description } = req.body;
     const updatedPlace: Place = { ...DUMMY_PLACES.find((p) => placeId === p.id) };
     const updatedPlaceIndex = DUMMY_PLACES.findIndex((p) => placeId === p.id);
     

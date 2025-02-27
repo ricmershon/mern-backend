@@ -1,4 +1,5 @@
 import express from 'express';
+import { check } from 'express-validator';
 
 export const router = express.Router();
 
@@ -14,8 +15,22 @@ router.get('/:pid', getPlacesById);
 
 router.get('/user/:uid', getPlacesByUserId);
 
-router.post('/', createPlace);
+router.post(
+    '/',
+    [
+        check('title').not().isEmpty().withMessage('A title must be provided'),
+        check('description').isLength({ min: 5 }).withMessage('A description of at least 5 characters must be provided'),
+        check('address').not().isEmpty().withMessage('An address must be provided')
+    ],
+    createPlace
+);
 
-router.patch('/:pid', updatePlaceById);
+router.patch(
+    '/:pid',
+    [
+        check('title').not().isEmpty().withMessage('A title must be provided'),
+        check('description').isLength({ min: 5 }).withMessage('A description of at least 5 characters must be provided')
+    ],
+    updatePlaceById);
 
 router.delete('/:pid', deletePlaceById);
