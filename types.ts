@@ -5,10 +5,19 @@ interface Location {
 
 export interface Place {
     id?: string,
-    title: string,
-    description: string,
+    title?: string,
+    description?: string,
     imageUrl?: string,
-    address: string,
+    address?: string,
     location?: Location,
-    creator: string;
+    creator?: string;
+}
+
+export interface User {
+    id?: string,
+    name?: string,
+    email?: string,
+    password?: string,
+    imageUrl?: string,
+    placeCount?: number
 }

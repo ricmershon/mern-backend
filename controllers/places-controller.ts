@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-console.log(uuidv4());
-
 import { HttpError } from "../models/http-error.ts";
 import { Place } from '../types';
 
@@ -33,14 +31,14 @@ const DUMMY_PLACES: Array<Place> = [
     }
 ];
 
-export const getPlaceById = (req: Request, res: Response, _next: NextFunction) => {
+export const getPlacesById = (req: Request, res: Response, _next: NextFunction) => {
     const placeId = req.params.pid;
     const place = DUMMY_PLACES.find((p) => placeId === p.id);
 
     console.log(`GET request for place: ${placeId}`);
 
     if (!place) {
-        console.log('No place found')
+        console.log('No place found');
         throw new HttpError(`No place found for: ${placeId}`, 404);
     }
         console.log(place)
@@ -62,20 +60,60 @@ export const getPlacesByUserId = (req: Request, res: Response, next: NextFunctio
     res.json({ places: userPlaces });
 }
 
-export const createPlace = (req: Request, res: Response, next: NextFunction) => {
+export const createPlace = (req: Request, res: Response, _next: NextFunction) => {
     const { title, description, coordinates, address, creator } = req.body;
-    const createdPlace = {
+
+    const createdPlace: Place = {
         id: uuidv4(),
         title: title,
         description: description,
         location: coordinates,
         address: address,
+        imageUrl: '',
         creator: creator
     }
 
+    console.log(`POST request for create place`);
+
     DUMMY_PLACES.push(createdPlace);
 
-    console.log(DUMMY_PLACES);
-
     res.status(201).json({ place: createdPlace });
+}
+
+export const updatePlaceById = (req: Request, res: Response, _next: NextFunction) => {
+    const { title, description } = req.body;
+
+    const placeId = req.params.pid;
+
+    console.log(`PATCH request for place: ${placeId}`);
+
+    const updatedPlace: Place = { ...DUMMY_PLACES.find((p) => placeId === p.id) };
+    const updatedPlaceIndex = DUMMY_PLACES.findIndex((p) => placeId === p.id);
+    
+    if (updatedPlaceIndex === -1) {
+        console.log('Place not found');
+        throw new HttpError(`No place found for: ${placeId}`, 404)
+    }
+
+    updatedPlace.title = title;
+    updatedPlace.description = description;
+
+    DUMMY_PLACES[updatedPlaceIndex] = updatedPlace;
+    res.status(200).json({ place: updatedPlace })
+}
+
+export const deletePlaceById = (req: Request, res: Response, _next: NextFunction) => {
+    const placeId = req.params.pid;
+
+    console.log(`DELETE request for place: ${placeId}`);
+
+    const deletedPlaceIndex = DUMMY_PLACES.findIndex((p) => placeId === p.id);
+
+    if (deletedPlaceIndex === -1) {
+        console.log('Place not found');
+        throw new HttpError(`No place found for: ${placeId}`, 404);
+    }
+
+    DUMMY_PLACES.splice(deletedPlaceIndex, 1);
+    res.status(200).json({ message: 'Place deleted' });
 }
