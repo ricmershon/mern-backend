@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import { validationResult } from 'express-validator';
+import { v4 as uuidv4 } from 'uuid';
 
 import { HttpError } from "../models/http-error.ts";
 import { Place } from '../types';
@@ -37,10 +37,10 @@ export const getPlacesById = (req: Request, res: Response, _next: NextFunction) 
     const placeId = req.params.pid;
     const place = DUMMY_PLACES.find((p) => placeId === p.id);
 
-    console.log(`GET request for place: ${placeId}`);
+    console.log(`>>> GET request for place: ${placeId}`);
 
     if (!place) {
-        console.log('No place found');
+        console.log('>>> No place found');
         throw new HttpError(`No place found for: ${placeId}`, 404);
     }
         console.log(place)
@@ -51,10 +51,10 @@ export const getPlacesByUserId = (req: Request, res: Response, next: NextFunctio
     const userId = req.params.uid;
     const userPlaces = DUMMY_PLACES.filter((place) => userId === place.creator);
 
-    console.log(`GET request for user places: ${userId}`);
+    console.log(`>>> GET request for user places: ${userId}`);
 
     if (userPlaces.length === 0) {
-        console.log('No places found');
+        console.log('>>> No places found');
         return next(new HttpError(`No user places found for: ${userId}`, 404));
     }
 
@@ -69,7 +69,7 @@ export const createPlace = (req: Request, res: Response, _next: NextFunction) =>
 
     if (!result.isEmpty()) {
         const error = getValidationMessages(req).array()[0];
-        console.log('>>> Invalid inputs\n', error);
+        console.log(`>>> Invalid inputs: ${error}`);
         throw new HttpError(error, 422);
     }
     
@@ -93,13 +93,13 @@ export const createPlace = (req: Request, res: Response, _next: NextFunction) =>
 export const updatePlaceById = (req: Request, res: Response, _next: NextFunction) => {
     const placeId = req.params.pid;
     
-    console.log(`PATCH request for place: ${placeId}`);
+    console.log(`>>> PATCH request for place: ${placeId}`);
 
         const result = validationResult(req);
 
         if (!result.isEmpty()) {
             const error = getValidationMessages(req).array()[0];
-            console.log('>>> Invalid inputs\n', error);
+            console.log(`>>> Invalid inputs: ${error}`);
             throw new HttpError(error, 422);
         }
     
@@ -108,7 +108,7 @@ export const updatePlaceById = (req: Request, res: Response, _next: NextFunction
     const updatedPlaceIndex = DUMMY_PLACES.findIndex((p) => placeId === p.id);
     
     if (updatedPlaceIndex === -1) {
-        console.log('Place not found');
+        console.log('>>> Place not found');
         throw new HttpError(`No place found for: ${placeId}`, 404)
     }
 
@@ -122,12 +122,12 @@ export const updatePlaceById = (req: Request, res: Response, _next: NextFunction
 export const deletePlaceById = (req: Request, res: Response, _next: NextFunction) => {
     const placeId = req.params.pid;
 
-    console.log(`DELETE request for place: ${placeId}`);
+    console.log(`>>> DELETE request for place: ${placeId}`);
 
     const deletedPlaceIndex = DUMMY_PLACES.findIndex((p) => placeId === p.id);
 
     if (deletedPlaceIndex === -1) {
-        console.log('Place not found');
+        console.log('>>> Place not found');
         throw new HttpError(`No place found for: ${placeId}`, 404);
     }
 
