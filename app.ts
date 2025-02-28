@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
+import 'dotenv/config';
 
 import { router as placesRoutes } from './routes/places-routes.ts';
 import { router as usersRoutes } from './routes/users-routes.ts';

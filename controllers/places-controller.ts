@@ -4,7 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { HttpError } from "../models/http-error.ts";
 import { Place } from '../types';
-import { getValidationMessages } from './utilities.ts';
+import { getValidationMessages } from '../utilities/validation.ts';
+import { getCoordsForAddress } from '../utilities/location.ts';
 
 const DUMMY_PLACES: Array<Place> = [
     {
@@ -62,7 +63,7 @@ export const getPlacesByUserId = (req: Request, res: Response, next: NextFunctio
     res.json({ places: userPlaces });
 }
 
-export const createPlace = (req: Request, res: Response, _next: NextFunction) => {
+export const createPlace = async (req: Request, res: Response, next: NextFunction) => {
     console.log(`>>> POST request for create place`);
 
     const result = validationResult(req);
@@ -70,10 +71,17 @@ export const createPlace = (req: Request, res: Response, _next: NextFunction) =>
     if (!result.isEmpty()) {
         const error = getValidationMessages(req).array()[0];
         console.log(`>>> Invalid inputs: ${error}`);
-        throw new HttpError(error, 422);
+        return next(new HttpError(error, 422));
     }
     
-    const { title, description, coordinates, address, creator } = req.body;
+    const { title, description, address, creator } = req.body;
+
+    let coordinates;
+    try {
+        coordinates = await getCoordsForAddress(address);
+    } catch (error) {
+        return next(error);
+    }
 
     const createdPlace: Place = {
         id: uuidv4(),

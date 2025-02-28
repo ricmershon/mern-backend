@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { HttpError } from "../models/http-error.ts";
 import { User } from "../types";
-import { getValidationMessages } from "./utilities.ts";
+import { getValidationMessages } from "../utilities/validation.ts";
 
 const USERS: Array<User> = [
     {
