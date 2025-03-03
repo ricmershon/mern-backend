@@ -35,18 +35,25 @@ const DUMMY_PLACES: Array<PlaceType> = [
     }
 ];
 
-export const getPlacesById = (req: Request, res: Response, _next: NextFunction) => {
+export const getPlaceById = async (req: Request, res: Response, next: NextFunction) => {
     const placeId = req.params.pid;
-    const place = DUMMY_PLACES.find((p) => placeId === p.id);
-
     console.log(`>>> GET request for place: ${placeId}`);
+
+    let place;
+
+    try {
+        place = await Place.findById(placeId);
+    } catch (error) {
+        console.log('>>> Error getting place\n', error);
+        return next(new HttpError(`Error getting place: ${error}`, 500));
+    }
 
     if (!place) {
         console.log('>>> No place found');
-        throw new HttpError(`No place found for: ${placeId}`, 404);
+        return next(new HttpError(`No place found for: ${placeId}`, 404));
     }
-        console.log(place)
-        res.json({ place: place });
+    
+    res.json({ place: place.toObject({ getters: true }) });
 }
 
 export const getPlacesByUserId = (req: Request, res: Response, next: NextFunction) => {
@@ -97,7 +104,7 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
         await createdPlace.save();
     } catch (error) {
         console.log('>>> Error creating place\n', error);
-        return next(new HttpError(`Error creating place: ${error}`, 500))
+        return next(new HttpError(`Error creating place: ${error}`, 500));
     }
 
     res.status(201).json({ place: createdPlace });

@@ -6,13 +6,13 @@ export const router = express.Router();
 import { createPlaceSchema, updatePlaceByIdSchema } from '../shemas/places-validation-schemas.ts';
 import {
     getPlacesByUserId,
-    getPlacesById,
+    getPlaceById,
     createPlace,
     updatePlaceById,
     deletePlaceById
 } from '../controllers/places-controller.ts';
 
-router.get('/:pid', getPlacesById);
+router.get('/:pid', getPlaceById);
 
 router.get('/user/:uid', getPlacesByUserId);
 
