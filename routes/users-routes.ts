@@ -1,10 +1,10 @@
 import express from 'express';
-import { check, checkSchema } from 'express-validator';
+import { checkSchema } from 'express-validator';
 
 export const router = express.Router();
 
-import { getUsers, createUser, loginUser } from '../controllers/users-controller.ts'
 import { createUserSchema } from '../shemas/users-validation-schemas.ts';
+import { getUsers, createUser, loginUser } from '../controllers/users-controller.ts'
 
 router.get('/', getUsers);
 

@@ -16,19 +16,15 @@ export const getCoordsForAddress = async (address: string) => {
             console.log('>>> Could not find address for location');
             throw new HttpError('Could not find location for address', 422);
         }
-
         return data.results[0].geometry.location;
     } catch (error: any) {
         if (error.response) {
-            console.log('>>> Google geocode API called but received errors');
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
+            const { data, status, headers } = error.response;
+            console.log(`>>> Google geocode API called but received errors\n${data}\n${status}\n${headers}`);
         } else if (error.request) {
-            console.log('>>> Google geocode API called but no response received');
-            console.log(error.request);
+            console.log(`>>> Google geocode API called but no response received\n${error.request}`);
         } else {
-            console.log('>>> Unknown error with Google geocode API request')
+            console.log(`>>> Unknown error with Google geocode API request\n${error}`);
         }
         throw new HttpError(error, 422)
     }

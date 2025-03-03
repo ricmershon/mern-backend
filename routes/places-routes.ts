@@ -3,6 +3,7 @@ import { checkSchema } from 'express-validator';
 
 export const router = express.Router();
 
+import { createPlaceSchema, updatePlaceByIdSchema } from '../shemas/places-validation-schemas.ts';
 import {
     getPlacesByUserId,
     getPlacesById,
@@ -10,7 +11,6 @@ import {
     updatePlaceById,
     deletePlaceById
 } from '../controllers/places-controller.ts';
-import { createPlaceSchema, updatePlaceByIdSchema } from '../shemas/places-validation-schemas.ts';
 
 router.get('/:pid', getPlacesById);
 

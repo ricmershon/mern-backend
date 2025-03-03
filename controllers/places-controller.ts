@@ -112,14 +112,14 @@ export const updatePlaceById = (req: Request, res: Response, _next: NextFunction
         }
     
     const { title, description } = req.body;
-    const updatedPlace: Place = { ...DUMMY_PLACES.find((p) => placeId === p.id) };
     const updatedPlaceIndex = DUMMY_PLACES.findIndex((p) => placeId === p.id);
     
     if (updatedPlaceIndex === -1) {
         console.log('>>> Place not found');
         throw new HttpError(`No place found for: ${placeId}`, 404)
     }
-
+    
+    const updatedPlace: Place = { ...DUMMY_PLACES.find((p) => placeId === p.id) };
     updatedPlace.title = title;
     updatedPlace.description = description;
 
