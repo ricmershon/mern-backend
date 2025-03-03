@@ -1,39 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
-import { v4 as uuidv4 } from 'uuid';
 
 import { HttpError } from "../models/http-error.ts";
 import { Place } from '../models/place.ts';
-import { PlaceType } from '../types';
 import { getValidationMessages } from '../utilities/validation.ts';
 import { getCoordsForAddress } from '../utilities/location.ts';
-
-const DUMMY_PLACES: Array<PlaceType> = [
-    {
-        id: 'p1',
-        title: 'Empire State Building',
-        description: 'One of the most famous sky scrapers in the world!',
-        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/NYC_Empire_State_Building.jpg/640px-NYC_Empire_State_Building.jpg',
-        address: '20 W 34th St, New York, NY 10001',
-        location: {
-            lat: 40.7484405,
-            lng: -73.9878584
-        },
-        creator: 'u1'
-    },
-    {
-        id: 'p2',
-        title: 'Empire State Building',
-        description: 'One of the most famous sky scrapers in the world!',
-        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/NYC_Empire_State_Building.jpg/640px-NYC_Empire_State_Building.jpg',
-        address: '20 W 34th St, New York, NY 10001',
-        location: {
-            lat: 40.7484405,
-            lng: -73.9878584
-        },
-        creator: 'u2'
-    }
-];
 
 export const getPlaceById = async (req: Request, res: Response, next: NextFunction) => {
     const placeId = req.params.pid;
@@ -114,47 +85,50 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
     res.status(201).json({ place: createdPlace });
 }
 
-export const updatePlaceById = (req: Request, res: Response, _next: NextFunction) => {
+export const updatePlaceById = async (req: Request, res: Response, next: NextFunction) => {
     const placeId = req.params.pid;
-    
     console.log(`>>> PATCH request for place: ${placeId}`);
 
-        const result = validationResult(req);
+    const result = validationResult(req);
 
-        if (!result.isEmpty()) {
-            const error = getValidationMessages(req).array()[0];
-            console.log(`>>> Invalid inputs: ${error}`);
-            throw new HttpError(error, 422);
-        }
+    if (!result.isEmpty()) {
+        const error = getValidationMessages(req).array()[0];
+        console.log(`>>> Invalid inputs: ${error}`);
+        return next(new HttpError(error, 422));
+    }
     
     const { title, description } = req.body;
-    const updatedPlaceIndex = DUMMY_PLACES.findIndex((p) => placeId === p.id);
-    
-    if (updatedPlaceIndex === -1) {
-        console.log('>>> Place not found');
-        throw new HttpError(`No place found for: ${placeId}`, 404)
-    }
-    
-    const updatedPlace: PlaceType = { ...DUMMY_PLACES.find((p) => placeId === p.id) };
-    updatedPlace.title = title;
-    updatedPlace.description = description;
 
-    DUMMY_PLACES[updatedPlaceIndex] = updatedPlace;
-    res.status(200).json({ place: updatedPlace })
+    let place;
+    try {
+        place = await Place.findByIdAndUpdate(
+            placeId,
+            { title: title, description: description },
+            { new: true }
+        );
+    } catch(error) {
+        console.log('>>> Error getting place and updating\n', error);
+        return next(new HttpError(`Error getting place and updating: ${error}`, 500));
+    }
+
+    if (!place) {
+        console.log('>>> Place not found');
+        return next(new HttpError(`No place found for: ${placeId}`, 404))
+    }
+
+    res.status(200).json({ place: place.toObject({ getters: true }) });
 }
 
-export const deletePlaceById = (req: Request, res: Response, _next: NextFunction) => {
+export const deletePlaceById = async (req: Request, res: Response, next: NextFunction) => {
     const placeId = req.params.pid;
-
     console.log(`>>> DELETE request for place: ${placeId}`);
 
-    const deletedPlaceIndex = DUMMY_PLACES.findIndex((p) => placeId === p.id);
-
-    if (deletedPlaceIndex === -1) {
-        console.log('>>> Place not found');
-        throw new HttpError(`No place found for: ${placeId}`, 404);
+    try {
+        await Place.findByIdAndDelete(placeId);
+    } catch (error) {
+        console.log('>>> Error deleting place\n', error);
+        return next(new HttpError(`Error deleting place: ${error}`, 500));
     }
 
-    DUMMY_PLACES.splice(deletedPlaceIndex, 1);
     res.status(200).json({ message: 'Place deleted' });
 }
