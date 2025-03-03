@@ -66,7 +66,7 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
         return next(error);
     }
 
-    const createdPlace = new Place ({
+    const newPlace = new Place ({
         title: title,
         description: description,
         imageUrl: 'https://en.wikipedia.org/wiki/Boston#/media/File:John_Hancock_Tower.jpg',
@@ -76,13 +76,13 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
     });
 
     try {
-        await createdPlace.save();
+        await newPlace.save();
     } catch (error) {
         console.log('>>> Error creating place\n', error);
         return next(new HttpError(`Error creating place: ${error}`, 500));
     }
 
-    res.status(201).json({ place: createdPlace });
+    res.status(201).json({ place: newPlace.toObject({ getters: true }) });
 }
 
 export const updatePlaceById = async (req: Request, res: Response, next: NextFunction) => {

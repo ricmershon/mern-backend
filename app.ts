@@ -31,17 +31,6 @@ app.use((error: HttpError, _req: Request, res: Response, next: NextFunction) => 
     }
 });
 
-// mongoose
-//     .connect(mongodbURI!)
-//     .then(() => {
-//         app.listen(port, () => {
-//             console.log(`Listening on port ${port}`)
-//         });
-//     })
-//     .catch((error) => {
-//         console.log('Error connecting to database', error)
-//     });
-
 const mongodbURI = process.env.MONGODB_URI!;
 const port = process.env.PORT || 5001;
 

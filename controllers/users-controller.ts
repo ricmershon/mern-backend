@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
-import { v4 as uuidv4 } from 'uuid';
 
 import { HttpError } from "../models/http-error.ts";
+import { User } from "../models/user.ts";
 import { UserType } from "../types";
 import { getValidationMessages } from "../utilities/validation.ts";
 
@@ -41,31 +41,21 @@ export const getUsers = (_req: Request, res: Response, _next: NextFunction) => {
      res.json({ users: USERS });
 }
 
-export const createUser = (req: Request, res: Response, _next: NextFunction) => {
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
     console.log('>>> POST request for create user');
 
-    const result = validationResult(req);
+    const { name, email, password, imageUrl, places } = req.body;
 
-    if (!result.isEmpty()) {
-        const error = getValidationMessages(req).array()[0];
-        console.log(`>>> Invalid inputs: ${error}`)
-        throw new HttpError(error, 422);
+    const newUser = new User ({ name, email, imageUrl, password, places });
+
+    try {
+        await newUser.save();
+    } catch (error) {
+        console.log('>>> Error creating user\n', error);
+        return next(new HttpError(`Error creating user: ${error}`, 500));
     }
 
-    const { name, email, password } = req.body;
-
-    const createdUser: UserType = {
-        id: uuidv4(),
-        name: name,
-        email: email,
-        password: password,
-        imageUrl: '',
-        placeCount: 0
-    }
-
-    USERS.push(createdUser);
-
-    res.status(201).json({ user: createdUser })
+    res.status(201).json({ user: newUser.toObject({ getters: true }) })
 }
 
 export const loginUser = (req: Request, res: Response, _next: NextFunction) => {
