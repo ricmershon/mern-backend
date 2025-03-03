@@ -40,7 +40,6 @@ export const getPlaceById = async (req: Request, res: Response, next: NextFuncti
     console.log(`>>> GET request for place: ${placeId}`);
 
     let place;
-
     try {
         place = await Place.findById(placeId);
     } catch (error) {
@@ -56,19 +55,24 @@ export const getPlaceById = async (req: Request, res: Response, next: NextFuncti
     res.json({ place: place.toObject({ getters: true }) });
 }
 
-export const getPlacesByUserId = (req: Request, res: Response, next: NextFunction) => {
+export const getPlacesByUserId = async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.params.uid;
-    const userPlaces = DUMMY_PLACES.filter((place) => userId === place.creator);
-
     console.log(`>>> GET request for user places: ${userId}`);
 
-    if (userPlaces.length === 0) {
+    let places;
+    try {
+        places = await Place.find({ creator: userId });
+    } catch(error) {
+        console.log('Error getting places\n', error);
+        return next(new HttpError(`Error getting places: ${error}`, 500))
+    }
+
+    if (!places || places.length === 0) {
         console.log('>>> No places found');
         return next(new HttpError(`No user places found for: ${userId}`, 404));
     }
 
-    console.log(userPlaces);
-    res.json({ places: userPlaces });
+    res.json({ places: places.map((place) => place.toObject({ getters: true })) });
 }
 
 export const createPlace = async (req: Request, res: Response, next: NextFunction) => {
