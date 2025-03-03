@@ -3,11 +3,12 @@ import { validationResult } from 'express-validator';
 import { v4 as uuidv4 } from 'uuid';
 
 import { HttpError } from "../models/http-error.ts";
-import { Place } from '../types';
+import { Place } from '../models/place.ts';
+import { PlaceType } from '../types';
 import { getValidationMessages } from '../utilities/validation.ts';
 import { getCoordsForAddress } from '../utilities/location.ts';
 
-const DUMMY_PLACES: Array<Place> = [
+const DUMMY_PLACES: Array<PlaceType> = [
     {
         id: 'p1',
         title: 'Empire State Building',
@@ -83,17 +84,21 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
         return next(error);
     }
 
-    const createdPlace: Place = {
-        id: uuidv4(),
+    const createdPlace = new Place ({
         title: title,
         description: description,
-        location: coordinates,
+        imageUrl: 'https://en.wikipedia.org/wiki/Boston#/media/File:John_Hancock_Tower.jpg',
         address: address,
-        imageUrl: '',
+        location: coordinates,
         creator: creator
-    }
+    });
 
-    DUMMY_PLACES.push(createdPlace);
+    try {
+        await createdPlace.save();
+    } catch (error) {
+        console.log('>>> Error creating place\n', error);
+        return next(new HttpError(`Error creating place: ${error}`, 500))
+    }
 
     res.status(201).json({ place: createdPlace });
 }
@@ -119,7 +124,7 @@ export const updatePlaceById = (req: Request, res: Response, _next: NextFunction
         throw new HttpError(`No place found for: ${placeId}`, 404)
     }
     
-    const updatedPlace: Place = { ...DUMMY_PLACES.find((p) => placeId === p.id) };
+    const updatedPlace: PlaceType = { ...DUMMY_PLACES.find((p) => placeId === p.id) };
     updatedPlace.title = title;
     updatedPlace.description = description;
 

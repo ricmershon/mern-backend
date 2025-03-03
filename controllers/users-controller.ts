@@ -3,10 +3,10 @@ import { validationResult } from "express-validator";
 import { v4 as uuidv4 } from 'uuid';
 
 import { HttpError } from "../models/http-error.ts";
-import { User } from "../types";
+import { UserType } from "../types";
 import { getValidationMessages } from "../utilities/validation.ts";
 
-const USERS: Array<User> = [
+const USERS: Array<UserType> = [
     {
         id: 'u1',
         name: 'Ric Mershon',
@@ -54,7 +54,7 @@ export const createUser = (req: Request, res: Response, _next: NextFunction) => 
 
     const { name, email, password } = req.body;
 
-    const createdUser: User = {
+    const createdUser: UserType = {
         id: uuidv4(),
         name: name,
         email: email,
@@ -71,7 +71,7 @@ export const createUser = (req: Request, res: Response, _next: NextFunction) => 
 export const loginUser = (req: Request, res: Response, _next: NextFunction) => {
     const { email, password } = req.body;
 
-    const user: User = {
+    const user: UserType = {
         email: email,
         password: password
     }

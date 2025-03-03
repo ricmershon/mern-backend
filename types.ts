@@ -3,7 +3,7 @@ interface Location {
     lng: number
 }
 
-export interface Place {
+export interface PlaceType {
     id?: string,
     title?: string,
     description?: string,
@@ -13,7 +13,7 @@ export interface Place {
     creator?: string;
 }
 
-export interface User {
+export interface UserType {
     id?: string,
     name?: string,
     email?: string,
