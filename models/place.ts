@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, InferSchemaType, Types } from "mongoose";
 
 const placeSchema = new Schema({
     title: { type: String, required: true },
@@ -9,7 +9,9 @@ const placeSchema = new Schema({
         lat: { type: Number, required: true },
         lng: { type: Number, required: true}
     },
-    creator: { type: String, required: true },
+    creator: { type: Types.ObjectId, required: true, ref: 'User' },
 });
 
-export const Place = mongoose.model('Place', placeSchema);
+type PlaceType = InferSchemaType<typeof placeSchema>;
+
+export const Place = mongoose.model<PlaceType>('Place', placeSchema);

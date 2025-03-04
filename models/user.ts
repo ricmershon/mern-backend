@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, {  Schema, InferSchemaType, Types } from "mongoose";
 import validator from "validator";
 
 const userSchema = new Schema({
@@ -16,7 +16,9 @@ const userSchema = new Schema({
     },
     password: { type: String, required: true, minLength: 6, maxLength: 16 },
     imageUrl: { type: String, required: true },
-    places: { type: String, required: true }
+    places: [{ type: Types.ObjectId, required: true, ref: 'Place' }]
 });
 
-export const User = mongoose.model('User', userSchema);
+type UserType = InferSchemaType<typeof userSchema>;
+
+export const User = mongoose.model<UserType>('User', userSchema);

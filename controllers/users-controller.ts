@@ -14,7 +14,7 @@ export const getUsers = async (_req: Request, res: Response, next: NextFunction)
         return next(new HttpError(`Error getting users: ${error}`, 500));
     }
 
-     res.json({ users: users });
+     res.json({ users: users.map((user) => user.toObject({ getters: true })) });
 }
 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -32,7 +32,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
         return next(new HttpError(<string>error, 500));
     }
 
-    const newUser = new User ({ name, email, imageUrl, password, places });
+    const newUser = new User ({ name, email, imageUrl, password, places: [] });
 
     try {
         await newUser.save();

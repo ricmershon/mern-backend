@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 
 import { HttpError } from "../models/http-error.ts";
-import { Place } from '../models/place.ts';
 import { getCoordsForAddress } from '../utilities/location.ts';
+import { Place } from '../models/place.ts';
+import { User } from '../models/user.ts';
 
 export const getPlaceById = async (req: Request, res: Response, next: NextFunction) => {
     const placeId = req.params.pid;
@@ -12,7 +14,7 @@ export const getPlaceById = async (req: Request, res: Response, next: NextFuncti
     try {
         place = await Place.findById(placeId);
     } catch (error) {
-        console.log('>>> Error getting place\n', error);
+        console.log('Error getting place\n', error);
         return next(new HttpError(`Error getting place: ${error}`, 500));
     }
 
@@ -53,7 +55,8 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
     try {
         coordinates = await getCoordsForAddress(address);
     } catch (error) {
-        return next(error);
+        console.log('Could not get coordinates for address', error);
+        return next(new Error(<string>error));
     }
 
     const newPlace = new Place ({
@@ -65,11 +68,29 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
         creator: creator
     });
 
+    let user;
     try {
-        await newPlace.save();
+        user = await User.findById(creator);
     } catch (error) {
-        console.log('>>> ', error);
-        return next(new HttpError(<string>error, 500));
+        console.log('Error getting user\n', error);
+        return next(new HttpError(`Error getting user: ${user}`, 500))
+    }
+
+    if (!user) {
+        console.log('User not found');
+        return next(new HttpError(`No user found for: ${user}`, 404));
+    }
+
+    try {
+        const session = await mongoose.startSession();
+        session.startTransaction();
+        await newPlace.save({ session: session });
+        user.places.push(newPlace)
+        await user.save({ session: session });
+        await session.commitTransaction();
+    } catch (error) {
+        console.log(error);
+        return next(new HttpError('Creating place faled', 500));
     }
 
     res.status(201).json({ place: newPlace.toObject({ getters: true }) });
