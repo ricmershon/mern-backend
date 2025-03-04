@@ -1,9 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { validationResult } from 'express-validator';
 
 import { HttpError } from "../models/http-error.ts";
 import { Place } from '../models/place.ts';
-import { getValidationMessages } from '../utilities/validation.ts';
 import { getCoordsForAddress } from '../utilities/location.ts';
 
 export const getPlaceById = async (req: Request, res: Response, next: NextFunction) => {
@@ -48,14 +46,6 @@ export const getPlacesByUserId = async (req: Request, res: Response, next: NextF
 
 export const createPlace = async (req: Request, res: Response, next: NextFunction) => {
     console.log(`>>> POST request for create place`);
-
-    const result = validationResult(req);
-
-    if (!result.isEmpty()) {
-        const error = getValidationMessages(req).array()[0];
-        console.log(`>>> Invalid inputs: ${error}`);
-        return next(new HttpError(error, 422));
-    }
     
     const { title, description, address, creator } = req.body;
 
@@ -78,8 +68,8 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
     try {
         await newPlace.save();
     } catch (error) {
-        console.log('>>> Error creating place\n', error);
-        return next(new HttpError(`Error creating place: ${error}`, 500));
+        console.log('>>> ', error);
+        return next(new HttpError(<string>error, 500));
     }
 
     res.status(201).json({ place: newPlace.toObject({ getters: true }) });
@@ -88,14 +78,6 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
 export const updatePlaceById = async (req: Request, res: Response, next: NextFunction) => {
     const placeId = req.params.pid;
     console.log(`>>> PATCH request for place: ${placeId}`);
-
-    const result = validationResult(req);
-
-    if (!result.isEmpty()) {
-        const error = getValidationMessages(req).array()[0];
-        console.log(`>>> Invalid inputs: ${error}`);
-        return next(new HttpError(error, 422));
-    }
     
     const { title, description } = req.body;
 

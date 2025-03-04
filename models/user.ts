@@ -7,7 +7,12 @@ const userSchema = new Schema({
         type: String,
         required: true,
         unique: true,
-        validate: validateEmail,
+        validate: (value: string) => {
+            if (!validator.isEmail(value)) {
+                console.log('Invalid email address')
+                throw new Error('invalid email address')
+            }
+        },
     },
     password: { type: String, required: true, minLength: 6, maxLength: 16 },
     imageUrl: { type: String, required: true },
@@ -15,13 +20,3 @@ const userSchema = new Schema({
 });
 
 export const User = mongoose.model('User', userSchema);
-
-async function validateEmail(email: string) {
-    if (!validator.isEmail(email)) {
-        throw new Error('Invalid email address');
-    }
-    const user = await User.findOne({ email });
-    if (user) {
-        throw new Error('User with this email already registered')
-    }
-}

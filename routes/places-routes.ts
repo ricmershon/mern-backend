@@ -1,9 +1,7 @@
 import express from 'express';
-import { checkSchema } from 'express-validator';
 
 export const router = express.Router();
 
-import { createPlaceSchema, updatePlaceByIdSchema } from '../shemas/places-validation-schemas.ts';
 import {
     getPlacesByUserId,
     getPlaceById,
@@ -16,8 +14,8 @@ router.get('/:pid', getPlaceById);
 
 router.get('/user/:uid', getPlacesByUserId);
 
-router.post('/', checkSchema(createPlaceSchema), createPlace);
+router.post('/', createPlace);
 
-router.patch('/:pid', checkSchema(updatePlaceByIdSchema), updatePlaceById);
+router.patch('/:pid', updatePlaceById);
 
 router.delete('/:pid', deletePlaceById);

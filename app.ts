@@ -31,6 +31,11 @@ app.use((error: HttpError, _req: Request, res: Response, next: NextFunction) => 
     }
 });
 
+const db = mongoose.connection;
+db.on('error', (error) => console.log('MongoDB Daemon: not running', error));
+db.on('disconnected', () => console.log('MongoDB Daemon: disconnected'));
+db.on('connected', () => console.log('MongoDB Daemon: connected'));
+
 const mongodbURI = process.env.MONGODB_URI!;
 const port = process.env.PORT || 5001;
 
