@@ -13,14 +13,11 @@ export const getPlaceById = async (req: Request, res: Response, next: NextFuncti
     let place;
     try {
         place = await Place.findById(placeId);
+        if (!place) {
+            return next(new HttpError(`No place found for: ${placeId}`, 404));
+        }
     } catch (error) {
-        console.log('Error getting place\n', error);
         return next(new HttpError(`Error getting place: ${error}`, 500));
-    }
-
-    if (!place) {
-        console.log('>>> No place found');
-        return next(new HttpError(`No place found for: ${placeId}`, 404));
     }
     
     res.json({ place: place.toObject({ getters: true }) });
@@ -33,14 +30,11 @@ export const getPlacesByUserId = async (req: Request, res: Response, next: NextF
     let places;
     try {
         places = await Place.find({ creator: userId });
+        if (!places || places.length === 0) {
+            return next(new HttpError(`No user places found for: ${userId}`, 404));
+        }
     } catch(error) {
-        console.log('Error getting places\n', error);
         return next(new HttpError(`Error getting places: ${error}`, 500))
-    }
-
-    if (!places || places.length === 0) {
-        console.log('>>> No places found');
-        return next(new HttpError(`No user places found for: ${userId}`, 404));
     }
 
     res.json({ places: places.map((place) => place.toObject({ getters: true })) });
@@ -55,7 +49,6 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
     try {
         coordinates = await getCoordsForAddress(address);
     } catch (error) {
-        console.log('Could not get coordinates for address', error);
         return next(new Error(<string>error));
     }
 
@@ -71,14 +64,11 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
     let user;
     try {
         user = await User.findById(creator);
+        if (!user) {
+            return next(new HttpError(`No user found for: ${user}`, 404));
+        }
     } catch (error) {
-        console.log('Error getting user\n', error);
         return next(new HttpError(`Error getting user: ${user}`, 500))
-    }
-
-    if (!user) {
-        console.log('User not found');
-        return next(new HttpError(`No user found for: ${user}`, 404));
     }
 
     try {
@@ -89,7 +79,6 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
         await user.save({ session: session });
         await session.commitTransaction();
     } catch (error) {
-        console.log(error);
         return next(new HttpError('Creating place faled', 500));
     }
 
@@ -109,14 +98,11 @@ export const updatePlaceById = async (req: Request, res: Response, next: NextFun
             { title: title, description: description },
             { new: true }
         );
+        if (!place) {
+            return next(new HttpError(`No place found for: ${placeId}`, 404))
+        }
     } catch(error) {
-        console.log('>>> Error getting place and updating\n', error);
         return next(new HttpError(`Error getting place and updating: ${error}`, 500));
-    }
-
-    if (!place) {
-        console.log('>>> Place not found');
-        return next(new HttpError(`No place found for: ${placeId}`, 404))
     }
 
     res.status(200).json({ place: place.toObject({ getters: true }) });
@@ -126,10 +112,38 @@ export const deletePlaceById = async (req: Request, res: Response, next: NextFun
     const placeId = req.params.pid;
     console.log(`>>> DELETE request for place: ${placeId}`);
 
+    let place;
     try {
-        await Place.findByIdAndDelete(placeId);
+        place = await Place.findById(placeId).populate('creator');
+        if (!place) {
+            return next (new HttpError(`Place not found: ${placeId}`, 404))
+        }
     } catch (error) {
-        console.log('>>> Error deleting place\n', error);
+        console.log(error);
+        return next(new HttpError(`Error finding place: ${error}`, 500));
+    }
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        const updatedUser = await User.updateOne(
+            { _id: place.creator.id },
+            { $pull: { places: placeId } },
+            { session: session }
+        );
+        if (updatedUser.modifiedCount !== 1) {
+            return next(new HttpError(`Error updating user: ${place.creator.id}`, 500));
+        }
+
+        const deletedPlace = await Place.findByIdAndDelete(placeId).session(session);
+        if (!deletedPlace) {
+            return next(new HttpError(`Error deleting place: ${placeId}`, 500));
+        }
+
+        await session.commitTransaction();
+    } catch (error) {
+        await session.abortTransaction();
+        console.log(error);
         return next(new HttpError(`Error deleting place: ${error}`, 500));
     }
 

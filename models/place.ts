@@ -1,5 +1,19 @@
-import mongoose, { Schema, InferSchemaType, Types } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
+import { UserInterface } from "./user";
+
+export interface PlaceInterface extends Document {
+    title: string;
+    description: string;
+    imageUrl: string;
+    address: string;
+    location: {
+        lat: number,
+        lng: number
+    },
+    creator: UserInterface
+
+}
 const placeSchema = new Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
@@ -9,9 +23,7 @@ const placeSchema = new Schema({
         lat: { type: Number, required: true },
         lng: { type: Number, required: true}
     },
-    creator: { type: Types.ObjectId, required: true, ref: 'User' },
+    creator: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
 });
 
-type PlaceType = InferSchemaType<typeof placeSchema>;
-
-export const Place = mongoose.model<PlaceType>('Place', placeSchema);
+export const Place = mongoose.model<PlaceInterface>('Place', placeSchema);

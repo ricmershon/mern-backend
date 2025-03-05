@@ -1,5 +1,15 @@
-import mongoose, {  Schema, InferSchemaType, Types } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 import validator from "validator";
+
+import { PlaceInterface } from "./place";
+
+export interface UserInterface extends Document {
+    name: string;
+    email: string;
+    password: string;
+    imageUrl: string;
+    places: Array<PlaceInterface>;
+} 
 
 const userSchema = new Schema({
     name: { type: String, required: true },
@@ -16,9 +26,7 @@ const userSchema = new Schema({
     },
     password: { type: String, required: true, minLength: 6, maxLength: 16 },
     imageUrl: { type: String, required: true },
-    places: [{ type: Types.ObjectId, required: true, ref: 'Place' }]
+    places: [{ type: Schema.Types.ObjectId, required: true, ref: 'Place' }]
 });
 
-type UserType = InferSchemaType<typeof userSchema>;
-
-export const User = mongoose.model<UserType>('User', userSchema);
+export const User = mongoose.model<UserInterface>('User', userSchema);
