@@ -55,7 +55,7 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
     const newPlace = new Place ({
         title: title,
         description: description,
-        imageUrl: 'https://en.wikipedia.org/wiki/Boston#/media/File:John_Hancock_Tower.jpg',
+        imageUrl: 'https://en.wikipedia.org/wiki/Boston#/media/File:John_Hancock_Tower.jpg',    // Temporary
         address: address,
         location: coordinates,
         creator: creator
@@ -65,21 +65,22 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
     try {
         user = await User.findById(creator);
         if (!user) {
-            return next(new HttpError(`No user found for: ${user}`, 404));
+            return next(new HttpError(`No user found for: ${creator}`, 404));
         }
     } catch (error) {
-        return next(new HttpError(`Error getting user: ${user}`, 500))
+        return next(new HttpError(`Error getting user: ${creator}`, 500))
     }
 
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
-        const session = await mongoose.startSession();
-        session.startTransaction();
         await newPlace.save({ session: session });
         user.places.push(newPlace)
         await user.save({ session: session });
         await session.commitTransaction();
     } catch (error) {
-        return next(new HttpError('Creating place faled', 500));
+        await session.abortTransaction();
+        return next(new HttpError('Error creating place', 500));
     }
 
     res.status(201).json({ place: newPlace.toObject({ getters: true }) });
@@ -99,7 +100,7 @@ export const updatePlaceById = async (req: Request, res: Response, next: NextFun
             { new: true }
         );
         if (!place) {
-            return next(new HttpError(`No place found for: ${placeId}`, 404))
+            return next(new HttpError(`Place not found: ${placeId}`, 404))
         }
     } catch(error) {
         return next(new HttpError(`Error getting place and updating: ${error}`, 500));
@@ -119,7 +120,6 @@ export const deletePlaceById = async (req: Request, res: Response, next: NextFun
             return next (new HttpError(`Place not found: ${placeId}`, 404))
         }
     } catch (error) {
-        console.log(error);
         return next(new HttpError(`Error finding place: ${error}`, 500));
     }
 
