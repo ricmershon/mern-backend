@@ -1,14 +1,15 @@
 import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
 import bodyParser from 'body-parser';
+import mongoose from 'mongoose';;
 import 'dotenv/config';
 
 import { router as placesRoutes } from './routes/places-routes.ts';
 import { router as usersRoutes } from './routes/users-routes.ts';
 import { HttpError } from './models/http-error.ts';
 
-const port = 5001;
 const app = express();
-
+app.use(cors());
 app.use(bodyParser.json());
 
 app.use('/api/places', placesRoutes);
@@ -28,8 +29,25 @@ app.use((error: HttpError, _req: Request, res: Response, next: NextFunction) => 
             message: error.message || 'Unknown error occurred'
         });
     }
-})
+});
 
-app.listen(port, () => {
-    console.log(`Listening on port ${port}`)
-})
+const db = mongoose.connection;
+db.on('error', (error) => console.log('MongoDB Daemon: not running', error));
+db.on('disconnected', () => console.log('MongoDB Daemon: disconnected'));
+db.on('connected', () => console.log('MongoDB Daemon: connected'));
+
+const mongodbURI = process.env.MONGODB_URI!;
+const port = process.env.PORT || 5001;
+
+async function run() {
+    try {
+        await mongoose.connect(mongodbURI);
+        app.listen(port, () => {
+            console.log(`Listening on port ${port}`);
+        });
+    } catch(error) {
+        console.log('Error connecting to server', error);
+    }
+}
+
+run();
