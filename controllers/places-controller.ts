@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 
 import { HttpError } from "../models/http-error.ts";
 import { getCoordsForAddress } from '../utilities/location.ts';
-import { Place } from '../models/place.ts';
-import { User } from '../models/user.ts';
+import { Place } from '../models/place-model.ts';
+import { User } from '../models/user-model.ts';
 
 export const getPlaceById = async (req: Request, res: Response, next: NextFunction) => {
     const placeId = req.params.pid;
@@ -43,7 +43,7 @@ export const getPlacesByUserId = async (req: Request, res: Response, next: NextF
 export const createPlace = async (req: Request, res: Response, next: NextFunction) => {
     console.log(`>>> POST request for create place`);
     
-    const { title, description, address, creator } = req.body;
+    const { title, description, address, imageUrl, creator } = req.body;
 
     let coordinates;
     try {
@@ -55,7 +55,7 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
     const newPlace = new Place ({
         title: title,
         description: description,
-        imageUrl: 'https://en.wikipedia.org/wiki/Boston#/media/File:John_Hancock_Tower.jpg',    // Temporary
+        imageUrl: imageUrl,    // Temporary
         address: address,
         location: coordinates,
         creator: creator
@@ -80,7 +80,7 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
         await session.commitTransaction();
     } catch (error) {
         await session.abortTransaction();
-        return next(new HttpError('Error creating place', 500));
+        return next(new HttpError(`Error creating place: ${error}`, 500));
     }
 
     res.status(201).json({ place: newPlace.toObject({ getters: true }) });

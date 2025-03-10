@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
 import validator from "validator";
 
-import { PlaceInterface } from "./place";
+import { PlaceInterface } from "./place-model";
 
 export interface UserInterface extends Document {
     name: string;
