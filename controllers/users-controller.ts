@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 
 import { HttpError } from "../models/http-error.ts";
-import { User } from "../models/user.ts";
+import { User } from "../models/user-model.ts";
 
 export const getUsers = async (_req: Request, res: Response, next: NextFunction) => {
     console.log('>>> GET request for users');
@@ -23,10 +23,10 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 
     try {
         if (await User.findOne({ email: email })) {
-            return next(new HttpError('User with this email already registered', 422));
+            return next(new HttpError(`A user with this email is already registered: ${email}.`, 422));
         }
     } catch(error) {
-        return next(new HttpError(`Error finding user: ${error}`, 500));
+        return next(new HttpError(`There was an error finding user: ${error}`, 500));
     }
 
     const newUser = new User ({ name, email, imageUrl, password, places: [] });
@@ -51,10 +51,9 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         return next(new HttpError(`Error finding user: ${error}`, 500));
     }
 
-    console.log(password);
     if (!user || user.password !== password) {
         return next(new HttpError('Invalid credentials', 401));
     }
 
-    res.json({ message: 'Logged in' });
+    res.json({ user: user.toObject({ getters: true }) });
 }
