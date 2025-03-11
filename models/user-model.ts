@@ -7,7 +7,7 @@ export interface UserInterface extends Document {
     name: string;
     email: string;
     password: string;
-    imageUrl: string;
+    image: string;
     places: Array<PlaceInterface>;
 } 
 
@@ -25,7 +25,7 @@ const userSchema = new Schema({
         },
     },
     password: { type: String, required: true, minLength: 6, maxLength: 16 },
-    imageUrl: { type: String, required: true },
+    image: { type: String, required: true },
     places: [{ type: Schema.Types.ObjectId, required: true, ref: 'Place' }]
 });
 

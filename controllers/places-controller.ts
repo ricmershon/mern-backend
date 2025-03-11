@@ -43,7 +43,7 @@ export const getPlacesByUserId = async (req: Request, res: Response, next: NextF
 export const createPlace = async (req: Request, res: Response, next: NextFunction) => {
     console.log(`>>> POST request for create place`);
     
-    const { title, description, address, imageUrl, creator } = req.body;
+    const { title, description, address, image, creator } = req.body;
 
     let coordinates;
     try {
@@ -55,7 +55,7 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
     const newPlace = new Place ({
         title: title,
         description: description,
-        imageUrl: imageUrl,    // Temporary
+        image: image,    // Temporary
         address: address,
         location: coordinates,
         creator: creator
