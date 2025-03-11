@@ -19,7 +19,7 @@ export const getUsers = async (_req: Request, res: Response, next: NextFunction)
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
     console.log('>>> POST request for create user');
 
-    const { name, email, password, image } = req.body;
+    const { name, email, password } = req.body;
 
     try {
         if (await User.findOne({ email: email })) {
@@ -29,7 +29,13 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
         return next(new HttpError(`There was an error finding user: ${error}`, 500));
     }
 
-    const newUser = new User ({ name, email, image, password, places: [] });
+    const newUser = new User ({
+        name,
+        email,
+        image: req.file!.path,
+        password,
+        places: []
+    });
 
     try {
         await newUser.save();

@@ -3,14 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 const MIME_TYPE_MAP: { [key: string]: string } = {
     'image/png': 'png',
-    'image/jpeg': 'png',
+    'image/jpeg': 'jpeg',
     'image/jpg': 'jpg'
 }
 
 const fileUpload = multer({
-    limits: {
-        fileSize: 500000
-    },
     storage: multer.diskStorage({
         destination: (_req, _file, cb) => {
             cb(null, 'uploads/images');
