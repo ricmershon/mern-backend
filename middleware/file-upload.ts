@@ -7,10 +7,10 @@ const MIME_TYPE_MAP: { [key: string]: string } = {
     'image/jpg': 'jpg'
 }
 
-const fileUpload = multer({
+export const userImageUpload = multer({
     storage: multer.diskStorage({
         destination: (_req, _file, cb) => {
-            cb(null, 'uploads/images');
+            cb(null, 'uploads/images/users');
         },
         filename: (_req, file, cb) => {
             const fileExtension = MIME_TYPE_MAP[file.mimetype];
@@ -23,4 +23,18 @@ const fileUpload = multer({
     }
 });
 
-export default fileUpload;
+export const placeImageUpload = multer({
+    storage: multer.diskStorage({
+        destination: (_req, _file, cb) => {
+            cb(null, 'uploads/images/places');
+        },
+        filename: (_req, file, cb) => {
+            const fileExtension = MIME_TYPE_MAP[file.mimetype];
+            cb(null, `${uuidv4()}.${fileExtension}`);
+        }
+    }),
+    fileFilter: (_req, file, cb) => {
+        const isValid = !!MIME_TYPE_MAP[file.mimetype];
+        cb(null, isValid);
+    }
+});
