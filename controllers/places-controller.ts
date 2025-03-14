@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
+import fs from 'fs';
 
 import { HttpError } from "../models/http-error.ts";
 import { getCoordsForAddress } from '../utilities/location.ts';
@@ -147,6 +148,10 @@ export const deletePlaceById = async (req: Request, res: Response, next: NextFun
         console.log(error);
         return next(new HttpError(`Error deleting place: ${error}`, 500));
     }
+
+    fs.unlink(place.image, (error) => {
+        console.log('Error deleting image file', error)
+    });
 
     res.status(200).json({ message: 'Place deleted' });
 }
