@@ -9,12 +9,13 @@ import {
     updatePlaceById,
     deletePlaceById
 } from '../controllers/places-controller.ts';
+import { placeImageUpload } from '../middleware/file-upload.ts';
 
 router.get('/:pid', getPlaceById);
 
 router.get('/user/:uid', getPlacesByUserId);
 
-router.post('/', createPlace);
+router.post('/', placeImageUpload.single('image'), createPlace);
 
 router.patch('/:pid', updatePlaceById);
 

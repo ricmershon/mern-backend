@@ -1,8 +1,11 @@
+import 'dotenv/config';
+import fs from 'fs';
+import path from 'path';
+
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
-import 'dotenv/config';
 
 import { router as placesRouter } from './routes/places-router.ts';
 import { router as usersRouter } from './routes/users-router.ts';
@@ -12,24 +15,27 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+app.use('/uploads/images/places', express.static(path.join('uploads', 'images', 'places')));
+app.use('/uploads/images/users', express.static(path.join('uploads', 'images', 'users')));
+
 app.use('/api/places', placesRouter);
 app.use('/api/users', usersRouter);
 
 app.use((_req, _res, _next) => {
-    console.log('^^^ REQUEST ^^^', _res);
     throw new HttpError('Route not found', 404);
 });
 
-app.use((error: HttpError, _req: Request, res: Response, next: NextFunction) => {
+app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
+    if (req.file) {
+        fs.unlink(req.file.path, (error) => {
+            console.log('>>> ERROR DELETING FILE: ', error);
+        });
+    }
     if (res.headersSent) {
         return next(error);
     }
-
-    if (error.code || error.message) {
-        res.status(error.code || 500).json({
-            message: error.message || 'Unknown error occurred'
-        });
-    }
+    res.status(error.code || 500);
+    res.json({ message: error.message || 'Unknown error occurred' });
 });
 
 const db = mongoose.connection;
