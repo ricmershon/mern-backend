@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import bcrypt from 'bcryptjs';
 
 import { HttpError } from "../models/http-error.ts";
 import { User } from "../models/user-model.ts";
@@ -29,11 +30,18 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
         return next(new HttpError(`There was an error finding user: ${error}`, 500));
     }
 
+    let hashedPassword;
+    try {
+        hashedPassword = await bcrypt.hash(password, 12);
+    } catch (error) {
+        return next(new HttpError(`There was an error creating the user: ${error}`, 500));
+    }
+
     const newUser = new User ({
         name,
         email,
         image: req.file!.path,
-        password,
+        password: hashedPassword,
         places: []
     });
 
@@ -57,9 +65,23 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         return next(new HttpError(`Error finding user: ${error}`, 500));
     }
 
-    if (!user || user.password !== password) {
+    if (!user) {
         return next(new HttpError('Invalid credentials', 401));
     }
 
-    res.json({ user: user.toObject({ getters: true }) });
+    let isValidPassword = false;
+    try {
+        isValidPassword = await bcrypt.compare(password, user.password);
+    } catch (error) {
+        return next(new HttpError(`Could not log you in: ${error}. Please check your credentials and try again.`, 500));
+    }
+
+    if (!isValidPassword) {
+        return next(new HttpError('Invalid credentials', 401));
+    }
+
+    res.json({
+        message: 'Logged in',
+        user: user.toObject({ getters: true }),
+    });
 }
