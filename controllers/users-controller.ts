@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 import { HttpError } from "../models/http-error.ts";
 import { User } from "../models/user-model.ts";
@@ -51,7 +52,23 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
         return next(new HttpError(`Error creating user: ${error}`, 500));
     }
 
-    res.status(201).json({ user: newUser.toObject({ getters: true }) })
+    let token;
+    try {
+        token = jwt.sign(
+            { userId: newUser.id, email: newUser.email },
+            process.env.SECRET!,
+            { expiresIn: '1h' }
+        );
+    } catch (error) {
+        return next(new HttpError(`Error creating user: ${error}`, 500));
+    }
+
+    res.status(201).json({
+        message: `User ${newUser.email} created.`,
+        userId: newUser.id,
+        email: newUser.email,
+        token: token
+    });
 }
 
 export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -80,8 +97,21 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         return next(new HttpError('Invalid credentials', 401));
     }
 
+    let token;
+    try {
+        token = jwt.sign(
+            { userId: user.id, email: user.email },
+            process.env.SECRET!,
+            { expiresIn: '1h' }
+        );
+    } catch (error) {
+        return next(new HttpError(`Error logging in user: ${error}`, 500));
+    }
+
     res.json({
-        message: 'Logged in',
-        user: user.toObject({ getters: true }),
+        message: `User ${user.email} logged in.`,
+        userId: user.id,
+        email: user.email,
+        token: token
     });
 }
