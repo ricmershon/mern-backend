@@ -35,6 +35,6 @@ export const checkAuth = (req: Request, _res: Response, next: NextFunction) => {
         (req as AuthRequest).userData = { userId: decodedToken.userId };
         next();
     } catch (error) {
-        return next(new HttpError(`Authentication failed: ${error}`, 401));
+        return next(new HttpError(`Authentication failed: ${error}`, 403));
     }
 };

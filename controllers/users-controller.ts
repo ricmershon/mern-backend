@@ -82,7 +82,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     }
 
     if (!user) {
-        return next(new HttpError('Invalid credentials', 401));
+        return next(new HttpError('Invalid credentials', 403));
     }
 
     let isValidPassword = false;
@@ -93,7 +93,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     }
 
     if (!isValidPassword) {
-        return next(new HttpError('Invalid credentials', 401));
+        return next(new HttpError('Invalid credentials', 403));
     }
 
     let token;
