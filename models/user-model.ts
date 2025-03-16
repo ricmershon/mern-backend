@@ -24,7 +24,7 @@ const userSchema = new Schema({
             }
         },
     },
-    password: { type: String, required: true, minLength: 6, maxLength: 16 },
+    password: { type: String, required: true, minLength: 6 },
     image: { type: String, required: true },
     places: [{ type: Schema.Types.ObjectId, required: true, ref: 'Place' }]
 });

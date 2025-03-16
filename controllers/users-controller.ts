@@ -64,7 +64,6 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     }
 
     res.status(201).json({
-        message: `User ${newUser.email} created.`,
         userId: newUser.id,
         email: newUser.email,
         token: token
@@ -107,9 +106,8 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     } catch (error) {
         return next(new HttpError(`Error logging in user: ${error}`, 500));
     }
-
+    
     res.json({
-        message: `User ${user.email} logged in.`,
         userId: user.id,
         email: user.email,
         token: token

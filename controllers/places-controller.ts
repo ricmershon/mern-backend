@@ -35,7 +35,7 @@ export const getPlacesByUserId = async (req: Request, res: Response, next: NextF
             return next(new HttpError(`No user places found for: ${userId}`, 404));
         }
     } catch(error) {
-        return next(new HttpError(`Error getting places: ${error}`, 500))
+        return next(new HttpError(`Error getting places: ${error}`, 500));
     }
 
     res.json({ places: places.map((place) => place.toObject({ getters: true })) });
@@ -43,7 +43,6 @@ export const getPlacesByUserId = async (req: Request, res: Response, next: NextF
 
 export const createPlace = async (req: Request, res: Response, next: NextFunction) => {
     console.log(`>>> POST request for create place`);
-    console.log('^^^ REQUEST BODY ^^^\n', req)
     
     const { title, description, address, creator } = req.body;
 
