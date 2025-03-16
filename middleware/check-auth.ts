@@ -3,22 +3,22 @@ import jwt, { JwtPayload }  from 'jsonwebtoken';
 
 import { HttpError } from '../models/http-error.ts';
 
-interface CheckAuthRequest extends Request {
+export interface AuthRequest extends Request {
     userData: {
         userId: string;
     }
     | JwtPayload;
 }
 
-interface CheckAuthJwtPayload extends JwtPayload {
+interface AuthJwtPayload extends JwtPayload {
     userId: string;
 }
 
 export const checkAuth = (req: Request, _res: Response, next: NextFunction) => {
     // This if check can be removed when using cors
-    if (req.method === 'OPTIONS') {
-        next();
-    }
+    // if (req.method === 'OPTIONS') {
+    //     next();
+    // }
 
     try {
         let token: string = '';
@@ -26,11 +26,13 @@ export const checkAuth = (req: Request, _res: Response, next: NextFunction) => {
         if (typeof authHeader === 'string') {
             token = authHeader?.split(' ')[1];
         }
+
         if (!token) {
-            return next(new HttpError('Authentication failed.', 401));
+            throw new Error('Authentication failed: invalid token.');
         }
-        const decodedToken = <CheckAuthJwtPayload>jwt.verify(token, process.env.SECRET!);
-        (req as CheckAuthRequest).userData = { userId: decodedToken.userId };
+        
+        const decodedToken = <AuthJwtPayload>jwt.verify(token, process.env.SECRET!);
+        (req as AuthRequest).userData = { userId: decodedToken.userId };
         next();
     } catch (error) {
         return next(new HttpError(`Authentication failed: ${error}`, 401));

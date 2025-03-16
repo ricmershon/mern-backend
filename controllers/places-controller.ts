@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import fs from 'fs';
 
+import { AuthRequest } from '../middleware/check-auth.ts';
 import { HttpError } from "../models/http-error.ts";
 import { getCoordsForAddress } from '../utilities/location.ts';
 import { Place } from '../models/place-model.ts';
@@ -95,19 +96,29 @@ export const updatePlaceById = async (req: Request, res: Response, next: NextFun
 
     let place;
     try {
-        place = await Place.findByIdAndUpdate(
-            placeId,
+        place = await Place.findById(placeId);
+        if (!place) {
+            return next (new HttpError(`Place not found: ${placeId}`, 404))
+        }
+    } catch (error) {
+        return next(new HttpError(`Error finding place: ${error}`, 500));
+    }
+
+    if (place.creator.toString() !== (req as AuthRequest).userData.userId) {
+        return next(new HttpError(`Not authorized to update place: ${placeId}`, 401));
+    }
+
+    try {
+        place = await Place.updateOne(
+            { _id: placeId },
             { title: title, description: description },
             { new: true }
         );
-        if (!place) {
-            return next(new HttpError(`Place not found: ${placeId}`, 404))
-        }
     } catch(error) {
-        return next(new HttpError(`Error getting place and updating: ${error}`, 500));
+        return next(new HttpError(`Error updating place: ${error}`, 500));
     }
 
-    res.status(200).json({ place: place.toObject({ getters: true }) });
+    res.status(200).json({ place: placeId });
 }
 
 export const deletePlaceById = async (req: Request, res: Response, next: NextFunction) => {
@@ -122,6 +133,10 @@ export const deletePlaceById = async (req: Request, res: Response, next: NextFun
         }
     } catch (error) {
         return next(new HttpError(`Error finding place: ${error}`, 500));
+    }
+
+    if (place.creator._id.toString() !== (req as AuthRequest).userData.userId) {
+        return next(new HttpError(`Not authorized to delete place: ${placeId}`, 401));
     }
 
     const session = await mongoose.startSession();
