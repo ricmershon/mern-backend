@@ -5,6 +5,9 @@ import jwt from 'jsonwebtoken';
 import { HttpError } from "../models/http-error.ts";
 import { User } from "../models/user-model.ts";
 
+/**
+ * @returns array of user objects.
+ */
 export const getUsers = async (_req: Request, res: Response, next: NextFunction) => {
     console.log('>>> GET request for users');
 
@@ -18,6 +21,10 @@ export const getUsers = async (_req: Request, res: Response, next: NextFunction)
      res.json({ users: users.map((user) => user.toObject({ getters: true })) });
 }
 
+/**
+ * Creates a new user.
+ * @returns object containing userId, email and token.
+ */
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
     console.log('>>> POST request for create user');
 
@@ -70,6 +77,10 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     });
 }
 
+/**
+ * Logs in a user.
+ * @returns object containing userId, email and token.
+ */
 export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
     console.log(`>>> POST login request for: ${email}`);

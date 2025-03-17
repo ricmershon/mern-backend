@@ -31,6 +31,7 @@ app.use('/uploads/images/users', express.static(path.join('uploads', 'images', '
 app.use('/api/places', placesRouter);
 app.use('/api/users', usersRouter);
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((_req, _res, _next) => {
     throw new HttpError('Route not found', 404);
 });

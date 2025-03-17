@@ -8,6 +8,9 @@ import { getCoordsForAddress } from '../utilities/location.ts';
 import { Place } from '../models/place-model.ts';
 import { User } from '../models/user-model.ts';
 
+/**
+ * @returns array of place objects for all users.
+ */
 export const getPlaceById = async (req: Request, res: Response, next: NextFunction) => {
     const placeId = req.params.pid;
     console.log(`>>> GET request for place: ${placeId}`);
@@ -25,6 +28,9 @@ export const getPlaceById = async (req: Request, res: Response, next: NextFuncti
     res.json({ place: place.toObject({ getters: true }) });
 }
 
+/**
+ * @returns array of place objects by user.
+ */
 export const getPlacesByUserId = async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.params.uid;
     console.log(`>>> GET request for user places: ${userId}`);
@@ -42,6 +48,10 @@ export const getPlacesByUserId = async (req: Request, res: Response, next: NextF
     res.json({ places: places.map((place) => place.toObject({ getters: true })) });
 }
 
+/**
+ * Creates a new place.
+ * @returns place object.
+ */
 export const createPlace = async (req: Request, res: Response, next: NextFunction) => {
     console.log(`>>> POST request for create place`);
     
@@ -72,7 +82,7 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
             return next(new HttpError(`No user found for: ${creator}`, 404));
         }
     } catch (error) {
-        return next(new HttpError(`Error getting user: ${creator}`, 500))
+        return next(new HttpError(`Error getting user: ${creator}: ${error}`, 500))
     }
 
     const session = await mongoose.startSession();
@@ -90,6 +100,10 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
     res.status(201).json({ place: newPlace.toObject({ getters: true }) });
 }
 
+/**
+ * Updates a place.
+ * @returns place id of place updated.
+ */
 export const updatePlaceById = async (req: Request, res: Response, next: NextFunction) => {
     const placeId = req.params.pid;
     console.log(`>>> PATCH request for place: ${placeId}`);
@@ -123,6 +137,10 @@ export const updatePlaceById = async (req: Request, res: Response, next: NextFun
     res.status(200).json({ place: placeId });
 }
 
+/**
+ * Deletes a place
+ * @returns message: 'Place deleted'
+ */
 export const deletePlaceById = async (req: Request, res: Response, next: NextFunction) => {
     const placeId = req.params.pid;
     console.log(`>>> DELETE request for place: ${placeId}`);
