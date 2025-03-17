@@ -45,7 +45,9 @@ export const getPlacesByUserId = async (req: Request, res: Response, next: NextF
 export const createPlace = async (req: Request, res: Response, next: NextFunction) => {
     console.log(`>>> POST request for create place`);
     
-    const { title, description, address, creator } = req.body;
+    const { title, description, address } = req.body;
+
+    const creator = (req as AuthRequest).userData.userId;
 
     let coordinates;
     try {
@@ -54,7 +56,7 @@ export const createPlace = async (req: Request, res: Response, next: NextFunctio
         return next(new Error(<string>error));
     }
 
-    const newPlace = new Place ({
+    const newPlace = new Place({
         title: title,
         description: description,
         image: req.file!.path,

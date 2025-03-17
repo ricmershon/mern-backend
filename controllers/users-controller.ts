@@ -107,7 +107,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         return next(new HttpError(`Error logging in user: ${error}`, 500));
     }
     
-    res.json({
+    res.status(201).json({
         userId: user.id,
         email: user.email,
         token: token
