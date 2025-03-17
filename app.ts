@@ -12,8 +12,18 @@ import { router as usersRouter } from './routes/users-router.ts';
 import { HttpError } from './models/http-error.ts';
 
 const app = express();
-app.use(cors());
 app.use(bodyParser.json());
+// app.use((_req, res, next) => {
+//     res.setHeader('Access-Control-Allow-Origin', '*');
+//     res.setHeader(
+//         'Access-Control-Allow-Headers',
+//         'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+//     );
+//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
+//     next();
+// });
+
+app.use(cors());
 
 app.use('/uploads/images/places', express.static(path.join('uploads', 'images', 'places')));
 app.use('/uploads/images/users', express.static(path.join('uploads', 'images', 'users')));

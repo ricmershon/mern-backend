@@ -1,6 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
-
-import { UserInterface } from "./user-model";
+import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface PlaceInterface extends Document {
     title: string;
@@ -11,7 +9,7 @@ export interface PlaceInterface extends Document {
         lat: number,
         lng: number
     },
-    creator: UserInterface
+    creator: Types.ObjectId
 }
 
 const placeSchema = new Schema({

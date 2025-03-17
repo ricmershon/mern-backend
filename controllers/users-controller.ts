@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from "express";
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 import { HttpError } from "../models/http-error.ts";
 import { User } from "../models/user-model.ts";
@@ -29,11 +31,18 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
         return next(new HttpError(`There was an error finding user: ${error}`, 500));
     }
 
+    let hashedPassword;
+    try {
+        hashedPassword = await bcrypt.hash(password, 12);
+    } catch (error) {
+        return next(new HttpError(`There was an error creating the user: ${error}`, 500));
+    }
+
     const newUser = new User ({
         name,
         email,
         image: req.file!.path,
-        password,
+        password: hashedPassword,
         places: []
     });
 
@@ -43,7 +52,22 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
         return next(new HttpError(`Error creating user: ${error}`, 500));
     }
 
-    res.status(201).json({ user: newUser.toObject({ getters: true }) })
+    let token;
+    try {
+        token = jwt.sign(
+            { userId: newUser.id, email: newUser.email },
+            process.env.SECRET!,
+            { expiresIn: '1h' }
+        );
+    } catch (error) {
+        return next(new HttpError(`Error creating user: ${error}`, 500));
+    }
+
+    res.status(201).json({
+        userId: newUser.id,
+        email: newUser.email,
+        token: token
+    });
 }
 
 export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -57,9 +81,35 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         return next(new HttpError(`Error finding user: ${error}`, 500));
     }
 
-    if (!user || user.password !== password) {
-        return next(new HttpError('Invalid credentials', 401));
+    if (!user) {
+        return next(new HttpError('Invalid credentials', 403));
     }
 
-    res.json({ user: user.toObject({ getters: true }) });
+    let isValidPassword = false;
+    try {
+        isValidPassword = await bcrypt.compare(password, user.password);
+    } catch (error) {
+        return next(new HttpError(`Could not log you in: ${error}. Please check your credentials and try again.`, 500));
+    }
+
+    if (!isValidPassword) {
+        return next(new HttpError('Invalid credentials', 403));
+    }
+
+    let token;
+    try {
+        token = jwt.sign(
+            { userId: user.id, email: user.email },
+            process.env.SECRET!,
+            { expiresIn: '1h' }
+        );
+    } catch (error) {
+        return next(new HttpError(`Error logging in user: ${error}`, 500));
+    }
+    
+    res.status(201).json({
+        userId: user.id,
+        email: user.email,
+        token: token
+    });
 }
