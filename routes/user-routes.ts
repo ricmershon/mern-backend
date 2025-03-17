@@ -1,8 +1,8 @@
-import express from 'express';
+import { Router } from 'express';
 
-export const router = express.Router();
+export const router = Router();
 
-import { getUsers, createUser, loginUser } from '../controllers/users-controller.ts'
+import { getUsers, createUser, loginUser } from '../controllers/user-controller.ts'
 import { userImageUpload } from '../middleware/file-upload.ts';
 
 router.get('/', getUsers);

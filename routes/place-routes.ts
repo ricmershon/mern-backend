@@ -1,6 +1,6 @@
-import express from 'express';
+import { Router } from 'express';
 
-export const router = express.Router();
+export const router = Router();
 
 import {
     getPlacesByUserId,
@@ -8,7 +8,7 @@ import {
     createPlace,
     updatePlaceById,
     deletePlaceById
-} from '../controllers/places-controller.ts';
+} from '../controllers/place-controller.ts';
 import { placeImageUpload } from '../middleware/file-upload.ts';
 import { checkAuth } from '../middleware/check-auth.ts';
 
