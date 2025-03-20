@@ -9,13 +9,14 @@ import { User } from "../models/user-model.ts";
  * @returns array of user objects.
  */
 export const getUsers = async (_req: Request, res: Response, next: NextFunction) => {
-    console.log('>>> GET request for users');
+    console.log('>>> getUsers:');
 
     let users;
     try {
         users = await User.find({}, '-password');
     } catch (error) {
-        return next(new HttpError(`Error getting users: ${error}`, 500));
+        console.log(`>>> Error finding users: ${error}.`)
+        return next(new HttpError(`Error finding users: ${error}.`, 500));
     }
 
      res.json({ users: users.map((user) => user.toObject({ getters: true })) });
@@ -26,7 +27,7 @@ export const getUsers = async (_req: Request, res: Response, next: NextFunction)
  * @returns object containing userId, email and token.
  */
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
-    console.log('>>> POST request for create user');
+    console.log('>>> createUser:');
 
     const { name, email, password } = req.body;
 
@@ -35,14 +36,16 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
             return next(new HttpError(`A user with this email is already registered: ${email}.`, 422));
         }
     } catch(error) {
-        return next(new HttpError(`There was an error finding user: ${error}`, 500));
+        console.log(`>>> Error finding user: ${error}.`)
+        return next(new HttpError(`Error finding user: ${error}.`, 500));
     }
 
     let hashedPassword;
     try {
         hashedPassword = await bcrypt.hash(password, 12);
     } catch (error) {
-        return next(new HttpError(`There was an error creating the user: ${error}`, 500));
+        console.log(`>>> Error creating user: ${error}.`)
+        return next(new HttpError(`Error creating user: ${error}.`, 500));
     }
 
     const newUser = new User ({
@@ -56,7 +59,8 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     try {
         await newUser.save();
     } catch (error) {
-        return next(new HttpError(`Error creating user: ${error}`, 500));
+        console.log(`>>> Error creating user: ${error}.`)
+        return next(new HttpError(`Error creating user: ${error}.`, 500));
     }
 
     let token;
@@ -67,7 +71,8 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
             { expiresIn: '1h' }
         );
     } catch (error) {
-        return next(new HttpError(`Error creating user: ${error}`, 500));
+        console.log(`>>> Error creating user: ${error}.`)
+        return next(new HttpError(`Error creating user: ${error}.`, 500));
     }
 
     res.status(201).json({
@@ -83,13 +88,14 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
  */
 export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
-    console.log(`>>> POST login request for: ${email}`);
+    console.log('>>> loginUser:');
 
     let user;
     try {
         user = await User.findOne({ email: email });
     } catch (error) {
-        return next(new HttpError(`Error finding user: ${error}`, 500));
+        console.log(`>>> Error finding user: ${error}.`)
+        return next(new HttpError(`Error finding user: ${error}.`, 500));
     }
 
     if (!user) {
@@ -100,11 +106,12 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     try {
         isValidPassword = await bcrypt.compare(password, user.password);
     } catch (error) {
+        console.log(`>>> Error logging in user: ${error}.`);
         return next(new HttpError(`Could not log you in: ${error}. Please check your credentials and try again.`, 500));
     }
 
     if (!isValidPassword) {
-        return next(new HttpError('Invalid credentials', 403));
+        return next(new HttpError('Invalid credentials.', 403));
     }
 
     let token;
@@ -115,7 +122,8 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
             { expiresIn: '1h' }
         );
     } catch (error) {
-        return next(new HttpError(`Error logging in user: ${error}`, 500));
+        console.log(`>>> Error logging in user: ${error}.`);
+        return next(new HttpError(`Error logging in user: ${error}.`, 500));
     }
     
     res.status(201).json({
