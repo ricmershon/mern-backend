@@ -31,7 +31,7 @@ export const checkAuth = (req: Request, _res: Response, next: NextFunction) => {
             throw new Error('Authentication failed: invalid token.');
         }
         
-        const decodedToken = <AuthJwtPayload>jwt.verify(token, process.env.SECRET!);
+        const decodedToken = <AuthJwtPayload>jwt.verify(token, process.env.JWT_KEY!);
         (req as AuthRequest).userData = { userId: decodedToken.userId };
         next();
     } catch (error) {
