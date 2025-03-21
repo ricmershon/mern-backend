@@ -15,11 +15,6 @@ interface AuthJwtPayload extends JwtPayload {
 }
 
 export const checkAuth = (req: Request, _res: Response, next: NextFunction) => {
-    // This if check can be removed when using cors
-    // if (req.method === 'OPTIONS') {
-    //     next();
-    // }
-
     try {
         let token: string = '';
         const authHeader = req.headers.authorization;

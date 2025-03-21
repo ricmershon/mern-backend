@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
 
 import { HttpError } from '../models/http-error.ts';
@@ -15,7 +16,6 @@ export const getCoordsForAddress = async (address: string) => {
             throw new HttpError('Could not find location for address.', 422);
         }
         return data.results[0].geometry.location;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         if (error.response) {
             const { data, status, headers } = error.response;
